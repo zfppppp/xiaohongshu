@@ -72,9 +72,9 @@ export const evidence = [
     publisher: '香港消费者委员会',
     date: '第 586 期',
     summary:
-      '32 款手提电脑测试包含电池、效能、便携等维度；携带评价考虑电源适配器。',
+      '32 款笔记本电脑测试包含续航、性能、便携性等维度；便携性评价计入电源适配器重量。',
     boundary: '香港市场样本；不能外推大陆用户占比或当前商品排名。',
-    url: 'https://www.consumer.org.hk/tc/article/586-laptops/586-laptops-test-items',
+    url: 'https://www.consumer.org.hk/sc/article/586-laptops/586-laptops-test-items',
   },
   {
     id: 'E03',
@@ -106,7 +106,7 @@ export const evidence = [
     title: '不同场景存在性能与电源取舍',
     publisher: 'ASUS 官方支持',
     date: '更新于 2025-12-04',
-    summary: 'MyASUS 可按情境调整部分电源与性能设置，支持功能因机型而异。',
+    summary: 'MyASUS 可按使用场景调整部分电源与性能设置，支持功能因机型而异。',
     boundary: '不能据此推断某型号的实测噪音或性能。',
     url: 'https://www.asus.com.cn/support/FAQ/1045651',
   },
