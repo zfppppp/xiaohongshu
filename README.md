@@ -4,6 +4,10 @@
 
 周枫浦 · 小红书商业培训生求职项目 · 2026.09
 
+**[打开在线作品 →](https://zfppppp.github.io/xiaohongshu/)**　无需安装或登录。
+
+[![Publish BriefLab](https://github.com/zfppppp/xiaohongshu/actions/workflows/pages.yml/badge.svg)](https://github.com/zfppppp/xiaohongshu/actions/workflows/pages.yml)
+
 这是一款可运行的内容决策工具，覆盖选题证据、简报编写、表述漏项提醒和交易实验复盘。聚焦轻薄本类目，与我的京东轻薄本采销、直播和校园用户调研经历相连。它是新做的独立求职项目，没有在京东或小红书落地。
 
 **先看思考：** [行业调研与产品取舍](docs/RESEARCH.md)　·　[3 分钟演示路线](docs/DEMO.md)　·　[验证记录](docs/VALIDATION.md)
