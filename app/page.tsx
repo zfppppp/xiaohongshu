@@ -32,12 +32,19 @@ import {
   TableHead,
   TableCell,
 } from '@/components/ui/table';
-import { evidence, topics, type Topic } from '@/lib/evidence';
+import {
+  evidence,
+  topics,
+  topicPriority,
+  pilotStages,
+  type Topic,
+} from '@/lib/evidence';
 import {
   analyzeDraft,
   buildBrief,
   compareExperiments,
   demoExperiments,
+  tradeoffExperiments,
   parseExperiments,
   type Experiment,
 } from '@/lib/domain';
@@ -123,6 +130,18 @@ export default function Home() {
     setDataset('手动编辑 · 未核实来源');
     setComparable(false);
   }
+  function loadExample(kind: 'improvement' | 'tradeoff') {
+    const data = kind === 'tradeoff' ? tradeoffExperiments : demoExperiments;
+    setExperiments(data.map((x) => ({ ...x })));
+    setDataset(
+      kind === 'tradeoff'
+        ? '模拟反例：转化上涨，贡献下降'
+        : '模拟示例：观察指标改善',
+    );
+    setComparable(false);
+    setError('');
+    setNotice('已载入模拟情景，请确认比较口径后查看下一步检查。');
+  }
   async function importData(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -143,7 +162,7 @@ export default function Home() {
     const { left, right, delta, message } = result.data;
     download(
       '实验复盘.md',
-      `# 内容实验复盘\n\n数据状态：${dataset}\n同口径确认：${comparable ? '是' : '否'}\n\n| 指标 | ${experiments[0].name} | ${experiments[1].name} |\n| --- | --- | --- |\n| 商品访问 UV | ${experiments[0].visitors} | ${experiments[1].visitors} |\n| 支付转化率 | ${percent(left.conversion)} | ${percent(right.conversion)} |\n| 全额退款订单率 | ${percent(left.refundRate)} | ${percent(right.refundRate)} |\n| 单支付订单媒体费 | ${money(left.costPerOrder)} | ${money(right.costPerOrder)} |\n| 项目贡献 | ${money(left.contribution)} | ${money(right.contribution)} |\n\nB-A 支付转化率差异：${delta === null ? '不计算' : (delta * 100).toFixed(2) + ' 个百分点'}\n${message}\n\n贡献=退款后收入-可变成本-媒体费-制作合作费；不包含未录入的固定成本和税项，不等于净利润。退款窗口须完整。\n\n## 输入记录\n${JSON.stringify(experiments, null, 2)}\n`,
+      `# 内容实验复盘\n\n数据状态：${dataset}\n同口径确认：${comparable ? '是' : '否'}\n\n| 指标 | ${experiments[0].name} | ${experiments[1].name} |\n| --- | --- | --- |\n| 商品访问 UV | ${experiments[0].visitors} | ${experiments[1].visitors} |\n| 支付转化率 | ${percent(left.conversion)} | ${percent(right.conversion)} |\n| 全额退款订单率 | ${percent(left.refundRate)} | ${percent(right.refundRate)} |\n| 单支付订单媒体费 | ${money(left.costPerOrder)} | ${money(right.costPerOrder)} |\n| 项目贡献 | ${money(left.contribution)} | ${money(right.contribution)} |\n\nB-A 支付转化率差异：${delta === null ? '不计算' : (delta * 100).toFixed(2) + ' 个百分点'}\n${message}\n\n贡献=退款后收入-可变成本-媒体费-制作合作费；不包含未录入的固定成本和税项，不等于净利润。退款窗口须完整。\n\n每千商品访客贡献 A / B：${money(left.contributionPer1000)} / ${money(right.contributionPer1000)}。按各组当前窗口费用摊销，用于控制流量规模差异，不是未来放量预测。\n\n## 下一步检查\n${result.data.nextAction.title}\n${result.data.nextAction.reason}\n${result.data.nextAction.checks.map((s) => `- ${s}`).join('\n')}\n以上只提示检查方向，不代表显著性、因果或自动投放指令。\n\n## 输入记录\n${JSON.stringify(experiments, null, 2)}\n`,
     );
     setNotice('已导出复盘。');
   }
@@ -213,6 +232,24 @@ export default function Home() {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="evidence">
+            <section className="business-brief">
+              <div>
+                <span className="eyebrow">经营提案 · 待商家验证</span>
+                <h2>轻薄本商家，下一轮内容先验证什么？</h2>
+                <p>
+                  面向能提供样机、商品证据与店铺汇总数据的内容运营：先判断用户疑问，再决定制作与小范围试发的投入。本轮优先验证“续航与通勤”。
+                </p>
+              </div>
+              <a
+                className="secondary"
+                href="https://github.com/zfppppp/xiaohongshu/blob/main/docs/DECISION.md"
+                target="_blank"
+                rel="noreferrer"
+              >
+                查看经营决策说明
+                <ArrowUpRight size={16} />
+              </a>
+            </section>
             <div className="evidence-layout">
               <section>
                 <div className="section-top">
@@ -271,6 +308,34 @@ export default function Home() {
                 <small>研究证据说明问题存在，不证明具体商品效果。</small>
               </aside>
             </div>
+            <section className="white-panel priority-panel">
+              <div className="section-top">
+                <h2>为什么先做这个选题</h2>
+                <span className="subtle">
+                  按现有证据排序 · 不是需求热度排名
+                </span>
+              </div>
+              <div className="priority-grid">
+                {topicPriority.map((p) => (
+                  <article key={p.topic}>
+                    <span className="type-tag">{p.order}</span>
+                    <h3>{topics[p.topic].label}</h3>
+                    <p>{p.reason}</p>
+                    <button
+                      className="text-button"
+                      aria-pressed={topic === p.topic}
+                      onClick={() => {
+                        setTopic(p.topic);
+                        setAudience(topics[p.topic].audience);
+                      }}
+                    >
+                      查看该主题证据
+                      <ArrowRight size={14} />
+                    </button>
+                  </article>
+                ))}
+              </div>
+            </section>
             <div className="counter-strip">
               <ShieldCheck />
               <div>
@@ -384,6 +449,23 @@ export default function Home() {
                   <p>
                     保持商品与权益一致，对比参数解释与场景实测；观察支付转化、退款及贡献。自然内容表现不等于因果效果。
                   </p>
+                  <details className="pilot-plan">
+                    <summary>准备、试发与复盘计划</summary>
+                    <ol>
+                      {pilotStages.map((s) => (
+                        <li key={s.when}>
+                          <strong>
+                            {s.when} · {s.owner}
+                          </strong>
+                          <p>{s.task}</p>
+                          <p>产出：{s.output}</p>
+                        </li>
+                      ))}
+                    </ol>
+                    <p>
+                      若商家无法提供互斥归因和成熟退款数据，先验证简报效率；此时不计算销售效果。
+                    </p>
+                  </details>
                   <h4>来源跟着简报走</h4>
                   <div className="source-chips">
                     {selected.map((e) => (
@@ -416,6 +498,22 @@ export default function Home() {
             </div>
           </TabsContent>
           <TabsContent value="experiment">
+            <div className="example-switch">
+              <span>选择模拟情景</span>
+              <button
+                className="secondary"
+                onClick={() => loadExample('improvement')}
+              >
+                观察指标改善
+              </button>
+              <button
+                className="secondary"
+                onClick={() => loadExample('tradeoff')}
+              >
+                转化上涨，贡献下降
+              </button>
+              <small>用于检查判断逻辑，均非真实投放结果。</small>
+            </div>
             <div className="section-top dataset-bar">
               <div>
                 <h2>先统一口径，再比较表现</h2>
@@ -529,7 +627,8 @@ export default function Home() {
                     onCheckedChange={(v) => setComparable(Boolean(v))}
                   />
                   <span>
-                    已确认同 SKU、权益、渠道／归因、统计及退款观察窗口一致
+                    已确认同
+                    SKU、权益、同一交易链路和互斥归因，统计及退款观察窗口一致且已成熟
                   </span>
                 </label>
                 <p className="subtle">
@@ -577,6 +676,11 @@ export default function Home() {
                           {money(result.data.left.contribution)} /{' '}
                           {money(result.data.right.contribution)}
                         </dd>
+                        <dt>每千商品访客贡献 A / B</dt>
+                        <dd>
+                          {money(result.data.left.contributionPer1000)} /{' '}
+                          {money(result.data.right.contributionPer1000)}
+                        </dd>
                       </dl>
                       <div className="interpretation">
                         <strong>
@@ -585,6 +689,19 @@ export default function Home() {
                             : `B − A：${(result.data.delta * 100).toFixed(2)} 个百分点`}
                         </strong>
                         <p>{result.data.message}</p>
+                      </div>
+                      <div className="next-action">
+                        <span className="eyebrow">下一步检查</span>
+                        <h3>{result.data.nextAction.title}</h3>
+                        <p>{result.data.nextAction.reason}</p>
+                        <ul>
+                          {result.data.nextAction.checks.map((item) => (
+                            <li key={item}>{item}</li>
+                          ))}
+                        </ul>
+                        <small>
+                          依据观察指标生成检查方向；不代表统计显著、因果结论或自动投放指令。
+                        </small>
                       </div>
                       <button className="primary" onClick={exportReview}>
                         <Download size={17} />
@@ -598,7 +715,8 @@ export default function Home() {
                   <p>
                     支付转化率 = 支付买家 ÷ 访客。全额退款订单率 = 全额退款订单
                     ÷ 支付订单。项目贡献 = 退款后收入 − 可变成本 − 媒体费 −
-                    制作合作费。未包含未录入的税项、人工等固定成本，不等于净利润。零分母显示“—”。
+                    制作合作费。每千访客贡献 = 项目贡献 ÷ 商品访问 UV ×
+                    1000，用于控制流量规模差异；这是当前窗口的费用摊销结果，不是未来放量预测。未包含未录入的税项、人工等固定成本，不等于净利润。零分母显示“—”。
                   </p>
                 </details>
               </aside>
@@ -636,6 +754,18 @@ export default function Home() {
                   位参与者，用文档和工具交叉完成相似任务；记录完成时间、漏项与无依据表述。试点目标是耗时降低
                   20% 且错误不增加。尚未验证，不是产品成绩。
                 </p>
+                <h3>把提案交到谁手上</h3>
+                <div className="execution-list">
+                  {pilotStages.map((s) => (
+                    <article key={s.when}>
+                      <strong>
+                        {s.when} · {s.owner}
+                      </strong>
+                      <p>{s.task}</p>
+                      <small>{s.output}</small>
+                    </article>
+                  ))}
+                </div>
                 <h3>与个人经历的关系</h3>
                 <p>
                   京东轻薄本采销与直播经验帮助理解商品、内容和交易；校园用户调研与产品比赛帮助拆解需求。代码与研究借助

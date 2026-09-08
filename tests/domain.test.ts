@@ -6,6 +6,7 @@ import {
   compareExperiments,
   parseExperiments,
   buildBrief,
+  tradeoffExperiments,
 } from '../lib/domain.ts';
 
 const a = {
@@ -25,6 +26,68 @@ await test('计算支付买家转化率与订单退款率时使用不同分母',
   assert.equal(r.refundRate, 5 / 55);
   assert.equal(r.contribution, 10500);
   assert.equal(r.costPerOrder, 3000 / 55);
+});
+
+await test('未确认口径时不发出经营行动结论', () => {
+  const r = compareExperiments(a, { ...a, name: 'B' }, false);
+  assert.equal(r.nextAction.title, '先补齐比较条件');
+});
+await test('转化提高但贡献下降时先排查退款和成本', () => {
+  const r = compareExperiments(
+    tradeoffExperiments[0],
+    tradeoffExperiments[1],
+    true,
+  );
+  assert.ok(r.delta! > 0);
+  assert.ok(r.right.contribution < r.left.contribution);
+  assert.equal(r.nextAction.title, '先排查退款与成本');
+});
+await test('流量不同不能只比较贡献总额', () => {
+  const b = {
+    ...a,
+    name: 'B',
+    visitors: 2000,
+    buyers: 120,
+    orders: 130,
+    refunds: 10,
+    netRevenue: 400000,
+    variableCosts: 379500,
+  };
+  const r = compareExperiments(a, b, true);
+  assert.ok(r.right.contribution > r.left.contribution);
+  assert.ok(r.right.contributionPer1000! < r.left.contributionPer1000!);
+  assert.equal(r.nextAction.title, '先排查退款与成本');
+});
+await test('零成交和同名分组不能被当成可用的对照结果', () => {
+  const zero = {
+    ...a,
+    name: 'B',
+    buyers: 0,
+    orders: 0,
+    refunds: 0,
+    netRevenue: 0,
+    variableCosts: 0,
+  };
+  assert.equal(
+    compareExperiments(a, zero, true).nextAction.title,
+    '先补充完整观察数据',
+  );
+  assert.throws(() => compareExperiments(a, { ...a, name: ' A ' }, true));
+});
+await test('观察指标改善仍然只建议下一轮验证', () => {
+  const b = {
+    ...a,
+    name: 'B',
+    buyers: 55,
+    orders: 60,
+    refunds: 3,
+    netRevenue: 240000,
+    variableCosts: 220000,
+  };
+  assert.equal(
+    compareExperiments(a, b, true).nextAction.title,
+    '进入下一轮小规模验证',
+  );
 });
 await test('零曝光或零订单不伪造为零转化或零获客成本', () => {
   const r = summarizeExperiment({
@@ -108,4 +171,7 @@ await test('没有来源的简报保留待验证状态，不生成已证实的�
   });
   assert.match(text, /待补证/);
   assert.match(text, /https:\/\/club.lenovo.com.cn\/thread-9445640/);
+  assert.match(text, /观察窗口成熟后/);
+  assert.match(text, /运营 \+ 商品 \+ 客服/);
+  assert.match(text, /先验证简报效率/);
 });

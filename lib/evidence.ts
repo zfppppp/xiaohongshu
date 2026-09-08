@@ -1,4 +1,49 @@
 export type Topic = 'battery' | 'noise' | 'compatibility';
+export const topicPriority = [
+  {
+    topic: 'battery',
+    order: '先验证',
+    reason:
+      '已有用户提问、独立测试和厂商条件说明；适合先形成一份可核验的场景简报。',
+  },
+  {
+    topic: 'noise',
+    order: '候补',
+    reason:
+      '有用户个案，但设置、环境与故障等解释较多；先确认目标商家是否反复遇到同类咨询。',
+  },
+  {
+    topic: 'compatibility',
+    order: '补访谈',
+    reason: '技术边界明确，但缺目标用户误购样本；优先补软件与任务需求。',
+  },
+] as const;
+export const pilotStages = [
+  {
+    when: '第 1–2 天',
+    owner: '运营 + 商品 + 客服',
+    task: '回看一批匿名咨询，访谈商家，确认问题是否反复出现、现有简报哪里费时。',
+    output: '确认是否继续；选定同一 SKU、权益与商品证据负责人。',
+  },
+  {
+    when: '第 3–5 天',
+    owner: '商品 + 内容创作者',
+    task: '按场景完成实测，制作参数解释与场景实测两版内容；共同核对来源和承诺。',
+    output: '两份简报与内容稿、测试记录、制作成本清单。',
+  },
+  {
+    when: '第 6–7 天',
+    owner: '运营 + 数据负责人',
+    task: '小范围试发并核对埋点或导出字段，预先固定归因、统计和退款观察窗口。',
+    output: '确认两组归因互斥，记录支付买家与订单的不同口径；此时不宣布效果。',
+  },
+  {
+    when: '观察窗口成熟后',
+    owner: '运营 + 商品 + 客服',
+    task: '同时复盘转化、退款与每千访客贡献；回到咨询和内容检查原因。',
+    output: '决定补证、改内容或进行下一轮小规模验证，并保留输入记录。',
+  },
+] as const;
 export const topics = {
   battery: {
     label: '续航与通勤',

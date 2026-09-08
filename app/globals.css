@@ -972,3 +972,14 @@ footer {
     justify-content: space-between;
   }
 }
+
+/* Business decisions share the existing workspace layout. */
+.business-brief{display:flex;align-items:center;justify-content:space-between;gap:22px;background:#eaf0f7;border:1px solid #dce5f1;border-radius:12px;padding:20px 24px;margin-bottom:25px}
+.business-brief .eyebrow{display:block;margin-bottom:5px}.business-brief h2{font-size:19px}.business-brief p{font-size:14px;line-height:1.8;color:#5e6d83;max-width:820px;margin-top:7px}.business-brief>a{flex-shrink:0}
+.priority-panel{margin-top:24px}.priority-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}.priority-grid article{min-width:0}.priority-grid h3{margin:10px 0 7px}.priority-grid p{color:#69768a;font-size:14px;line-height:1.85}.text-button{display:inline-flex;align-items:center;gap:6px;border:0;background:none;padding:10px 0 0;color:#b3344c;font:inherit;font-size:14px}.text-button[aria-pressed=true]{font-weight:700}
+.example-switch{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:24px;padding:16px 20px;background:#eaf0f7;border-radius:10px}.example-switch>span{font-size:14px;font-weight:600;margin-right:5px}.example-switch small{font-size:12px;color:#758298}
+.next-action{padding:18px;margin:0 0 22px;border:1px solid #d5e4db;background:#f2f8f4;border-radius:9px}.next-action h3{font-size:17px;color:#345840;margin-bottom:7px}.next-action p,.next-action li{font-size:14px;line-height:1.8;color:#596f60}.next-action ul{padding-left:18px;margin:12px 0}.next-action small{display:block;color:#77857a;font-size:12px}
+.pilot-plan summary{font-weight:600;color:#536681}.pilot-plan li{margin-top:13px}.pilot-plan strong{font-size:13px}.pilot-plan p{font-size:12px!important}
+.execution-list article{border-left:2px solid #d9e1ef;padding:0 0 18px 16px}.execution-list strong{font-size:14px;color:#465673}.execution-list p{font-size:14px}.execution-list small{font-size:12px;color:#7b8596}
+@media(max-width:1000px){.business-brief{align-items:flex-start;flex-direction:column;gap:14px}.priority-grid{gap:16px}}
+@media(max-width:720px){.business-brief{padding:18px}.priority-grid{grid-template-columns:1fr}.priority-grid article+article{padding-top:18px;border-top:1px solid var(--border)}.example-switch{padding:15px}.example-switch small{width:100%}}

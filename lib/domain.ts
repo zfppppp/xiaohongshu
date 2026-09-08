@@ -1,4 +1,4 @@
-import { evidence, topics, type Topic } from './evidence.ts';
+import { evidence, topics, pilotStages, type Topic } from './evidence.ts';
 
 export type BriefInput = {
   topic: Topic;
@@ -98,7 +98,7 @@ export function buildBrief(input: BriefInput): string {
     .map((i) => `- ${i.title}：${i.detail}`)
     .join(
       '\n',
-    )}\n\n## 实验设计\n同一 SKU、价格权益、受众、流量来源与统计窗口，对比参数解释与场景实测；先观察商品访问到支付买家转化，再核对退款和贡献。自然内容比较只能提供方向信号，不能证明因果。\n\n## 研究来源\n${sources.map((e) => `- ${e.id} ${e.publisher}｜${e.kind}｜${e.date}\n  ${e.url}\n  限制：${e.boundary}`).join('\n')}\n\n本简报由人工整理的证据与确定性模板生成；不是大模型判断或性能背书。\n`;
+    )}\n\n## 实验设计\n同一 SKU、价格权益、受众、流量来源与统计窗口，对比参数解释与场景实测；先观察商品访问到支付买家转化，再核对退款和贡献。自然内容比较只能提供方向信号，不能证明因果。\n\n## 准备、试发与复盘计划\n${pilotStages.map((s) => `- ${s.when}｜${s.owner}：${s.task} 产出：${s.output}`).join('\n')}\n\n执行前提：以下是待验证的商家试点提案。只能在同一可追溯交易链路中比较；不能把外部平台订单直接归因为小红书增量。若拿不到归因与成熟退款数据，先验证简报效率，不输出销售效果结论。\n\n## 内容表达\n以用户的具体任务开场，展示已记录条件下的结果，再说明适合与不适合的情况，最后引导核对同一配置及权益。利益合作、商品信息与适用边界应清晰，避免用互动数据替代成交结论。\n\n## 研究来源\n${sources.map((e) => `- ${e.id} ${e.publisher}｜${e.kind}｜${e.date}\n  ${e.url}\n  限制：${e.boundary}`).join('\n')}\n\n本简报由人工整理的证据与确定性模板生成；不是大模型判断或性能背书。\n`;
 }
 export type Experiment = {
   name: string;
@@ -139,6 +139,11 @@ export function summarizeExperiment(x: Experiment) {
     refundRate: x.orders ? x.refunds / x.orders : null,
     costPerOrder: x.orders ? x.mediaCost / x.orders : null,
     contribution: x.netRevenue - x.variableCosts - x.mediaCost - x.contentCost,
+    contributionPer1000: x.visitors
+      ? ((x.netRevenue - x.variableCosts - x.mediaCost - x.contentCost) /
+          x.visitors) *
+        1000
+      : null,
   };
 }
 export function compareExperiments(
@@ -148,14 +153,80 @@ export function compareExperiments(
 ) {
   const left = summarizeExperiment(a),
     right = summarizeExperiment(b);
+  if (a.name.trim() === b.name.trim()) throw Error('两组名称需要不同');
   const delta =
     comparable && left.conversion !== null && right.conversion !== null
       ? right.conversion - left.conversion
       : null;
+  let nextAction = {
+    title: '继续观察差异',
+    reason: '当前指标没有同时支持转化与经营质量改善，先核对内容和人群差异。',
+    checks: [
+      '确认流量结构是否变化',
+      '检查咨询问题是否被回答',
+      '在相同观察窗口中复核结果',
+    ],
+  };
+  if (!comparable) {
+    nextAction = {
+      title: '先补齐比较条件',
+      reason: '同一交易链路、互斥归因和成熟观察窗口是比较的前提。',
+      checks: [
+        '确认同 SKU 与权益',
+        '固定统计和退款窗口',
+        '核对访客、支付买家和订单来源',
+      ],
+    };
+  } else if (
+    left.conversion === null ||
+    right.conversion === null ||
+    left.refundRate === null ||
+    right.refundRate === null ||
+    left.contributionPer1000 === null ||
+    right.contributionPer1000 === null
+  ) {
+    nextAction = {
+      title: '先补充完整观察数据',
+      reason: '至少一组缺少访客或成交，不能把零成交或零分母当成稳定表现。',
+      checks: [
+        '确认数据不是遗漏',
+        '等到预定观察窗口结束',
+        '保留未成交的真实结果',
+      ],
+    };
+  } else if (
+    right.contributionPer1000 < left.contributionPer1000 ||
+    right.refundRate > left.refundRate ||
+    right.contribution < 0
+  ) {
+    nextAction = {
+      title: '先排查退款与成本',
+      reason: '即使转化上涨，退款恶化、标准化贡献下降或亏损都需要先解释。',
+      checks: [
+        '查退款原因与内容承诺是否一致',
+        '拆查商品、履约和制作费用',
+        '核对渠道与流量结构，先做修正再验证',
+      ],
+    };
+  } else if (
+    right.conversion > left.conversion &&
+    right.contributionPer1000 > left.contributionPer1000
+  ) {
+    nextAction = {
+      title: '进入下一轮小规模验证',
+      reason: '观察方向较好，但尚无随机分流或因果证据；保留相同口径再验证。',
+      checks: [
+        '复核关键商品承诺',
+        '预先确定下一轮预算与停止条件',
+        '持续跟踪退款和贡献，不只看转化',
+      ],
+    };
+  }
   return {
     left,
     right,
     delta,
+    nextAction,
     message: !comparable
       ? '先确认同一商品、权益、渠道、归因与统计窗口。'
       : delta === null
@@ -174,7 +245,8 @@ export function parseExperiments(text: string): Experiment[] {
   if (!Array.isArray(data) || data.length !== 2)
     throw Error('需要恰好两组实验记录');
   for (const x of data) summarizeExperiment(x);
-  if (data[0].name === data[1].name) throw Error('两组名称需要不同');
+  if (data[0].name.trim() === data[1].name.trim())
+    throw Error('两组名称需要不同');
   return data;
 }
 export const demoExperiments: Experiment[] = [
@@ -199,5 +271,15 @@ export const demoExperiments: Experiment[] = [
     variableCosts: 214600,
     mediaCost: 3000,
     contentCost: 1500,
+  },
+];
+export const tradeoffExperiments: Experiment[] = [
+  { ...demoExperiments[0] },
+  {
+    ...demoExperiments[1],
+    name: 'B · 转化高但退款多',
+    refunds: 14,
+    netRevenue: 179964,
+    variableCosts: 173700,
   },
 ];
