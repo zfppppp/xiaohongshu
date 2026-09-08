@@ -12,6 +12,15 @@
 
 **先看思考：** [行业调研与产品取舍](docs/RESEARCH.md)　·　[3 分钟演示路线](docs/DEMO.md)　·　[验证记录](docs/VALIDATION.md)
 
+## 作品导航
+
+| 作品 | 内容与能力 | 查看 |
+| --- | --- | --- |
+| BriefLab · 种草证据台 | 公开证据组织、内容简报与同口径经营分析 | [在线体验](https://zfppppp.github.io/xiaohongshu/) · [调研与取舍](docs/RESEARCH.md) |
+| 《食光予灵》· AIGC 音乐短片 | 《风味人间》IP 创意、角色一致性与幻化转场设计；腾讯视频 AI 创作大赛·MV季参赛作品 | [创作案例](docs/works/shiguang-yuling.md) · [腾讯原平台观看](https://lingya.qq.com/video/s1257pc5rb5?activityId=act_6h332uGTLP) |
+
+《食光予灵》在本仓库以文字案例和原平台链接展示，成片保留在活动指定平台。
+
 ## 为什么值得做
 
 一位用户追问“26 小时续航对应什么场景，办公到底能用多久”；另一位用户关心办公时的风扇噪音。这些问题暴露了一个可研究的缺口：**参数描述与个人任务之间，缺少可迁移的解释。** [续航原帖](https://club.lenovo.com.cn/thread-9445640-1-1.html) · [噪音原帖](https://club.lenovo.com.cn/thread-7957358-1-1.html)
