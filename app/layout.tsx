@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import './globals.css';
 export const metadata: Metadata = {
-  title: '种草证据台 BriefLab | 轻薄本内容决策',
+  title: 'BriefLab · 内容经营工作台',
   description:
-    '从真实用户问题到带来源的内容简报，再到可复算的实验复盘。周枫浦的商业运营求职项目。',
+    '免登录的内容经营工作台。创建项目、整理证据、编写简报、安排任务和复盘数据。',
 };
 export default function RootLayout({
   children,

@@ -1,9 +1,8 @@
 'use client';
 import { useEffect, useRef } from 'react';
-import { buildBrief, type BriefInput } from './domain';
 
 // Optional browser integration; ordinary browsers use the visible export button.
-export function useBriefTool(input: BriefInput) {
+export function useBriefTool(input: string) {
   const current = useRef(input);
   useEffect(() => {
     current.current = input;
@@ -44,8 +43,8 @@ export function useBriefTool(input: BriefInput) {
               )
                 throw Error('此工具不接受参数');
               return {
-                markdown: buildBrief(current.current),
-                status: 'proposal_not_verified',
+                markdown: current.current,
+                status: 'user_authored_not_verified',
               };
             },
           },
